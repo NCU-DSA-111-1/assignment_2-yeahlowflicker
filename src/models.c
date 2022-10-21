@@ -6,6 +6,10 @@
 
 #define PIECE_TYPE_COUNT 8
 
+#define MIN(a, b) (a < b ? (a) : (b))
+#define MAX(a, b) (a > b ? (a) : (b))
+
+
 typedef enum { King, Rook, Bishop, Gold, Silver, Knight, Lance, Pawn } PieceType;
 
 typedef struct {
@@ -47,6 +51,8 @@ char* GetHans(PieceType type) {
 void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
     system("clear");
 
+
+    // Draw the pieces captured by Player 1
     printf("———————————————————————————\n");
     for (int i = 0; i < 40; ++i) {
         if (pieces[i].isEaten && pieces[i].player == 0)
@@ -54,9 +60,12 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
     }
     printf("\n———————————————————————————\n");
 
+
+    // Draw the top scales
     printf("\n 9  8  7  6  5  4  3  2  1");
     printf("\n+——+——+——+——+——+——+——+——+——+\n");
 
+    // Draw the main grid
     for (int y = 1; y <= 9; ++y) {
         for (int x = 9; x > 0; --x) {
 
@@ -86,6 +95,8 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
         printf("\n+——+——+——+——+——+——+——+——+——+\n");
     }
 
+
+    // Draw the pieces captured by Player 0
     printf("\n———————————————————————————\n");
     for (int i = 0; i < 40; ++i) {
         if (pieces[i].isEaten && pieces[i].player == 1)
@@ -94,6 +105,8 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
     printf("\n———————————————————————————\n");
 }
 
+
+// Directly assign data to a piece. Used for initialization
 void AssignPiece(Piece* piece, int player, PieceType type, int x, int y) {
     piece->player = player;
     piece->type = type;
@@ -102,6 +115,8 @@ void AssignPiece(Piece* piece, int player, PieceType type, int x, int y) {
     piece->isEaten = FALSE;
 }
 
+
+// Initialize the behaviors of each type
 void InitializeBehaviors(PieceBehavior* pieceBehaviors) {
     for (int i = 0; i < PIECE_TYPE_COUNT; ++i) {
         pieceBehaviors[i].type = (PieceType)i;
@@ -213,6 +228,8 @@ void InitializeBehaviors(PieceBehavior* pieceBehaviors) {
     }
 }
 
+
+// Initialize the board. Generates the pieces and layout at the start
 void InitializeBoard(Piece* const pieces) {
     for (int x = 9; x > 0; --x) {
         AssignPiece(&pieces[x-1], 0, Pawn, x, 7);
@@ -248,16 +265,20 @@ void InitializeBoard(Piece* const pieces) {
     DrawBoard(pieces, -1, -1);
 }
 
+
+// Gets a pointer to a piece sitting at a specific location
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
     for (int i = 0; i < 40; ++i) {
         if (pieces[i].x == x && pieces[i].y == y) {
-            if (pieces[i].isEaten) return NULL;
+            if (pieces[i].isEaten) continue;
             else return &pieces[i];
         }
     }
     return NULL;
 }
 
+
+// Gets the corresponding behavior for the type
 PieceBehavior* GetPieceBehavior(PieceBehavior* pieceBehaviors, PieceType type) {
     for (int i = 0; i < PIECE_TYPE_COUNT; ++i) {
         // printf("%s\n", GetHans(pieceBehaviors[i].type));
@@ -267,7 +288,11 @@ PieceBehavior* GetPieceBehavior(PieceBehavior* pieceBehaviors, PieceType type) {
     return NULL;
 }
 
-int CheckMoveRule(PieceBehavior* pieceBehaviors, PieceType type, int oldX, int oldY, int newX, int newY, int currentPlayer) {
+
+
+// Validate if a move is legal
+int CheckMoveRule(Piece* pieces, PieceBehavior* pieceBehaviors, PieceType type, int oldX, int oldY, int newX, int newY, int currentPlayer) {
+    // Calculate the horizontal and vertical move delta
     int dx = oldX - newX;
     int dy = oldY - newY;
 
@@ -276,6 +301,7 @@ int CheckMoveRule(PieceBehavior* pieceBehaviors, PieceType type, int oldX, int o
 
     int direction = -1;
 
+    // Determine the move direction based on dx and dy
     if      (dx == 0 && dy > 0)     direction = 0;
     else if (dx > 0 && dy > 0)      direction = 1;
     else if (dx > 0 && dy == 0)     direction = 2;
@@ -287,11 +313,15 @@ int CheckMoveRule(PieceBehavior* pieceBehaviors, PieceType type, int oldX, int o
 
     printf("%d %d -> DIR: %d\n", dx, dy, direction);
 
+
+    // Catch unrecognized types
     if (GetPieceBehavior(pieceBehaviors, type) == NULL) {
         printf("Type not found.\n");
         return FALSE;
     }
 
+
+    // Get the behavior for the given type
     PieceBehavior behavior = *GetPieceBehavior(pieceBehaviors, type);
 
     //  Invalidate if multi-cell movements is not allowed, but delta > 1
@@ -300,6 +330,24 @@ int CheckMoveRule(PieceBehavior* pieceBehaviors, PieceType type, int oldX, int o
             return FALSE;
     }
 
+    //  Check if the piece is jumping and whether it is allowed to jump
+    if (!behavior.allowJump) {
+	//  Scan horizontally
+	if (dy == 0)
+	    for (int x = MIN(oldX, newX)+1; x < MAX(oldX, newX)-1; ++x)
+		if (GetPieceAtPosition(pieces, x, newY) != NULL)
+		    return FALSE;
+
+	//  Scan vertically
+	if (dx == 0)
+	    for (int y = MIN(oldY, newY)+1; y < MAX(oldY, newY)-1; ++y)
+		if (GetPieceAtPosition(pieces, newX, y) != NULL)
+		    return FALSE;
+
+    }
+
+
+    //  Return whether the direction is allowed
     switch(direction) {
         case 0: return behavior.n;
         case 1: return behavior.ne;
@@ -314,16 +362,17 @@ int CheckMoveRule(PieceBehavior* pieceBehaviors, PieceType type, int oldX, int o
     return FALSE;
 }
 
+
+// Move a piece from one location to another
 void MovePiece(Piece* piece, int x, int y) {
     printf("MOVE %s FROM (%d, %d) TO (%d, %d)\n", GetHans(piece->type), piece->x, piece->y, x, y);
     piece->x = x;
     piece->y = y;
 }
-//
-// void CheckPieceOverlap(Piece* pieces, int x, int y) {
-//     if (GetPieceAtPosition(piece))
-// }
 
+
+
+// Request input from the user about the next action
 void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlayer) {
     // DrawBoard(pieces, -1, -1);
 
@@ -364,12 +413,15 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
     scanf("%d %d", &newX, &newY);
 
 
-    if (!CheckMoveRule(pieceBehaviors, piece_ptr->type, oldX, oldY, newX, newY, currentPlayer)) {
+    //  Validate the intended move
+    if (!CheckMoveRule(pieces, pieceBehaviors, piece_ptr->type, oldX, oldY, newX, newY, currentPlayer)) {
         printf("This move is illegal!\n\n");
         RequestInput(pieces, pieceBehaviors, currentPlayer);
         return;
     }
 
+
+    //  Check for overlaps. Determine whether to prohibit the move or issue an 'eat'
     if (GetPieceAtPosition(pieces, newX, newY) != NULL) {
         Piece destinationPiece = *GetPieceAtPosition(pieces, newX, newY);
         if (destinationPiece.player == currentPlayer) {
@@ -378,16 +430,27 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
             return;
         }
         else {
-            GetPieceAtPosition(pieces, newX, newY)->isEaten = TRUE;
+	    Piece* destinationPiece_ptr = GetPieceAtPosition(pieces, newX, newY);
+	    destinationPiece_ptr->y = (currentPlayer == 0) ? 10 : 0;
+	    destinationPiece_ptr->isEaten = TRUE;
         }
     }
 
+
+    //  Move the piece to the intended location
     MovePiece(piece_ptr, newX, newY);
 
+
+    //  Redraw the board without highlights
     DrawBoard(pieces, -1, -1);
+
+
+    //  Log the move
     printf("Moved %s to (%d, %d)\n", GetHans(piece_ptr->type), piece_ptr->x, piece_ptr->y);
 }
 
+
+// Entry point to a single game
 void ShogiGame() {
     Piece pieces[40];
     PieceBehavior pieceBehaviors[PIECE_TYPE_COUNT];
