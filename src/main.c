@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "models.h"
+#include "shogi.h"
 
 int main(char* argc, char** argv) {
-    ShogiGame();
+
+    ShogiGame(argv[1]);
 
     return 0;
 }

@@ -1,38 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include "shogilib.h"
 
-#define FALSE 0
-#define TRUE 1
-
-#define PIECE_TYPE_COUNT 8
-
-#define MIN(a, b) (a < b ? (a) : (b))
-#define MAX(a, b) (a > b ? (a) : (b))
-
-
-typedef enum { King, Rook, Bishop, Gold, Silver, Knight, Lance, Pawn } PieceType;
-
-typedef struct {
-    PieceType type;
-    int n;
-    int ne;
-    int e;
-    int se;
-    int s;
-    int sw;
-    int w;
-    int nw;
-    int allowMulti;
-    int allowJump;
-} PieceBehavior;
-
-typedef struct {
-    PieceType type;
-    int player;
-    int x;
-    int y;
-    int isEaten;
-} Piece;
 
 char* GetHans(PieceType type) {
     switch (type) {
@@ -50,7 +20,6 @@ char* GetHans(PieceType type) {
 
 void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
     system("clear");
-
 
     // Draw the pieces captured by Player 1
     printf("———————————————————————————\n");
@@ -271,7 +240,7 @@ Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
     for (int i = 0; i < 40; ++i) {
         if (pieces[i].x == x && pieces[i].y == y) {
             if (pieces[i].isEaten) continue;
-            else return &pieces[i];
+            return &pieces[i];
         }
     }
     return NULL;
@@ -311,8 +280,6 @@ int CheckMoveRule(Piece* pieces, PieceBehavior* pieceBehaviors, PieceType type, 
     else if (dx < 0 && dy == 0)     direction = 6;
     else if (dx < 0 && dy > 0)      direction = 7;
 
-    printf("%d %d -> DIR: %d\n", dx, dy, direction);
-
 
     // Catch unrecognized types
     if (GetPieceBehavior(pieceBehaviors, type) == NULL) {
@@ -332,18 +299,17 @@ int CheckMoveRule(Piece* pieces, PieceBehavior* pieceBehaviors, PieceType type, 
 
     //  Check if the piece is jumping and whether it is allowed to jump
     if (!behavior.allowJump) {
-	//  Scan horizontally
-	if (dy == 0)
-	    for (int x = MIN(oldX, newX)+1; x < MAX(oldX, newX)-1; ++x)
-		if (GetPieceAtPosition(pieces, x, newY) != NULL)
-		    return FALSE;
+		//  Scan horizontally
+		if (dy == 0)
+	    	for (int x = MIN(oldX, newX)+1; x < MAX(oldX, newX); ++x)
+				if (GetPieceAtPosition(pieces, x, oldY) != NULL)
+		    		return FALSE;
 
-	//  Scan vertically
-	if (dx == 0)
-	    for (int y = MIN(oldY, newY)+1; y < MAX(oldY, newY)-1; ++y)
-		if (GetPieceAtPosition(pieces, newX, y) != NULL)
-		    return FALSE;
-
+		//  Scan vertically
+		if (dx == 0) 
+	    	for (int y = MIN(oldY, newY)+1; y < MAX(oldY, newY); ++y)
+				if (GetPieceAtPosition(pieces, oldX, y) != NULL)
+		    		return FALSE;
     }
 
 
@@ -370,99 +336,3 @@ void MovePiece(Piece* piece, int x, int y) {
     piece->y = y;
 }
 
-
-
-// Request input from the user about the next action
-void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlayer) {
-    // DrawBoard(pieces, -1, -1);
-
-    // Print the current player's name
-    if (currentPlayer == 0)
-        printf("\n\x1b[32mPlayer %d\x1b[0m:\n", currentPlayer);
-    else
-        printf("\n\x1b[31mPlayer %d\x1b[0m:\n", currentPlayer);
-
-    //  Ask the current player which piece to select
-    int oldX = -1;
-    int oldY = -1;
-    printf("Select piece (x, y) >> ");
-    scanf("%d %d", &oldX, &oldY);
-
-    //  Check if there is a piece at the position
-    if (GetPieceAtPosition(pieces, oldX, oldY) == NULL) {
-        printf("Piece not found.\n\n");
-        RequestInput(pieces, pieceBehaviors, currentPlayer);
-        return;
-    }
-
-    //  Get reference to an existing piece
-    Piece* piece_ptr = GetPieceAtPosition(pieces, oldX, oldY);
-
-    //  Check whether the selected piece belongs to the current player
-    if (piece_ptr->player != currentPlayer) {
-        printf("You cannot select a piece which does not belong to you!\n\n");
-        RequestInput(pieces, pieceBehaviors, currentPlayer);
-        return;
-    }
-    DrawBoard(pieces, oldX, oldY);
-
-    //  Request new position and move the piece
-    int newX = -1;
-    int newY = -1;
-    printf("[%s] -> Move piece (x, y) >> ", GetHans(piece_ptr->type));
-    scanf("%d %d", &newX, &newY);
-
-
-    //  Validate the intended move
-    if (!CheckMoveRule(pieces, pieceBehaviors, piece_ptr->type, oldX, oldY, newX, newY, currentPlayer)) {
-        printf("This move is illegal!\n\n");
-        RequestInput(pieces, pieceBehaviors, currentPlayer);
-        return;
-    }
-
-
-    //  Check for overlaps. Determine whether to prohibit the move or issue an 'eat'
-    if (GetPieceAtPosition(pieces, newX, newY) != NULL) {
-        Piece destinationPiece = *GetPieceAtPosition(pieces, newX, newY);
-        if (destinationPiece.player == currentPlayer) {
-            printf("That space has already been occupied!\n\n");
-            RequestInput(pieces, pieceBehaviors, currentPlayer);
-            return;
-        }
-        else {
-	    Piece* destinationPiece_ptr = GetPieceAtPosition(pieces, newX, newY);
-	    destinationPiece_ptr->y = (currentPlayer == 0) ? 10 : 0;
-	    destinationPiece_ptr->isEaten = TRUE;
-        }
-    }
-
-
-    //  Move the piece to the intended location
-    MovePiece(piece_ptr, newX, newY);
-
-
-    //  Redraw the board without highlights
-    DrawBoard(pieces, -1, -1);
-
-
-    //  Log the move
-    printf("Moved %s to (%d, %d)\n", GetHans(piece_ptr->type), piece_ptr->x, piece_ptr->y);
-}
-
-
-// Entry point to a single game
-void ShogiGame() {
-    Piece pieces[40];
-    PieceBehavior pieceBehaviors[PIECE_TYPE_COUNT];
-    int currentPlayer = 0;
-
-    InitializeBehaviors(pieceBehaviors);
-    InitializeBoard(pieces);
-
-    while (TRUE) {
-        RequestInput(pieces, pieceBehaviors, currentPlayer);
-
-        // Change the current player;
-        currentPlayer = currentPlayer == 0 ? 1 : 0;
-    }
-}
