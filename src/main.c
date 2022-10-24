@@ -1,10 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <ev.h>
+#include <unistd.h> 
+
 #include "shogi.h"
+#include "replay.h"
 
-int main(char* argc, char** argv) {
+int main(int argc, char** argv) {
 
-    ShogiGame(argv[1]);
+	int nFlag = 0;
+	int sFlag = 0;
+	int lFlag = 0;
+	int opt = 0;
+	char* fileName = NULL;
 
-    return 0;
+	while((opt = getopt(argc, argv, "l:ns:")) != -1) {
+		switch (opt) {
+			case 'l': lFlag = 1; fileName = optarg; break;
+
+			case 'n': nFlag = 1; break;
+			case 's': sFlag = 1; fileName = optarg; break;
+			case '?': return 1;
+		}
+	}
+
+	if (nFlag && sFlag && fileName != NULL)
+		ShogiGame(fileName);
+	else if (lFlag && fileName != NULL)
+		ShogiReplay(fileName);
+    
+	return 0;
 }

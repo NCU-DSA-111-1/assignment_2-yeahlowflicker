@@ -76,12 +76,12 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
 
 
 // Directly assign data to a piece. Used for initialization
-void AssignPiece(Piece* piece, int player, PieceType type, int x, int y) {
+void AssignPiece(Piece* piece, int player, PieceType type, int x, int y, int isEaten) {
     piece->player = player;
     piece->type = type;
     piece->x = x;
     piece->y = y;
-    piece->isEaten = FALSE;
+    piece->isEaten = isEaten;
 }
 
 
@@ -201,35 +201,35 @@ void InitializeBehaviors(PieceBehavior* pieceBehaviors) {
 // Initialize the board. Generates the pieces and layout at the start
 void InitializeBoard(Piece* const pieces) {
     for (int x = 9; x > 0; --x) {
-        AssignPiece(&pieces[x-1], 0, Pawn, x, 7);
-        AssignPiece(&pieces[19+x], 1, Pawn, x, 3);
+        AssignPiece(&pieces[x-1], 0, Pawn, x, 7, FALSE);
+        AssignPiece(&pieces[19+x], 1, Pawn, x, 3, FALSE);
     }
 
     // Player 0 (Bottom)
-    AssignPiece(&pieces[9], 0, Bishop, 8, 8);
-    AssignPiece(&pieces[10], 0, Rook, 2, 8);
-    AssignPiece(&pieces[11], 0, Lance, 9, 9);
-    AssignPiece(&pieces[12], 0, Knight, 8, 9);
-    AssignPiece(&pieces[13], 0, Silver, 7, 9);
-    AssignPiece(&pieces[14], 0, Gold, 6, 9);
-    AssignPiece(&pieces[15], 0, King, 5, 9);
-    AssignPiece(&pieces[16], 0, Gold, 4, 9);
-    AssignPiece(&pieces[17], 0, Silver, 3, 9);
-    AssignPiece(&pieces[18], 0, Knight, 2, 9);
-    AssignPiece(&pieces[19], 0, Lance, 1, 9);
+    AssignPiece(&pieces[9], 0, Bishop, 8, 8, FALSE);
+    AssignPiece(&pieces[10], 0, Rook, 2, 8, FALSE);
+    AssignPiece(&pieces[11], 0, Lance, 9, 9, FALSE);
+    AssignPiece(&pieces[12], 0, Knight, 8, 9, FALSE);
+    AssignPiece(&pieces[13], 0, Silver, 7, 9, FALSE);
+    AssignPiece(&pieces[14], 0, Gold, 6, 9, FALSE);
+    AssignPiece(&pieces[15], 0, King, 5, 9, FALSE);
+    AssignPiece(&pieces[16], 0, Gold, 4, 9, FALSE);
+    AssignPiece(&pieces[17], 0, Silver, 3, 9, FALSE);
+    AssignPiece(&pieces[18], 0, Knight, 2, 9, FALSE);
+    AssignPiece(&pieces[19], 0, Lance, 1, 9, FALSE);
 
     //  Player 1 (Top)
-    AssignPiece(&pieces[29], 1, Rook, 2, 2);
-    AssignPiece(&pieces[30], 1, Bishop, 8, 2);
-    AssignPiece(&pieces[31], 1, Lance, 9, 1);
-    AssignPiece(&pieces[32], 1, Knight, 8, 1);
-    AssignPiece(&pieces[33], 1, Silver, 7, 1);
-    AssignPiece(&pieces[34], 1, Gold, 6, 1);
-    AssignPiece(&pieces[35], 1, King, 5, 1);
-    AssignPiece(&pieces[36], 1, Gold, 4, 1);
-    AssignPiece(&pieces[37], 1, Silver, 3, 1);
-    AssignPiece(&pieces[38], 1, Knight, 2, 1);
-    AssignPiece(&pieces[39], 1, Lance, 1, 1);
+    AssignPiece(&pieces[29], 1, Rook, 2, 2, FALSE);
+    AssignPiece(&pieces[30], 1, Bishop, 8, 2, FALSE);
+    AssignPiece(&pieces[31], 1, Lance, 9, 1, FALSE);
+    AssignPiece(&pieces[32], 1, Knight, 8, 1, FALSE);
+    AssignPiece(&pieces[33], 1, Silver, 7, 1, FALSE);
+    AssignPiece(&pieces[34], 1, Gold, 6, 1, FALSE);
+    AssignPiece(&pieces[35], 1, King, 5, 1, FALSE);
+    AssignPiece(&pieces[36], 1, Gold, 4, 1, FALSE);
+    AssignPiece(&pieces[37], 1, Silver, 3, 1, FALSE);
+    AssignPiece(&pieces[38], 1, Knight, 2, 1, FALSE);
+    AssignPiece(&pieces[39], 1, Lance, 1, 1, FALSE);
 
     DrawBoard(pieces, -1, -1);
 }
@@ -238,13 +238,26 @@ void InitializeBoard(Piece* const pieces) {
 // Gets a pointer to a piece sitting at a specific location
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
     for (int i = 0; i < 40; ++i) {
-        if (pieces[i].x == x && pieces[i].y == y) {
-            if (pieces[i].isEaten) continue;
+        if (pieces[i].isEaten) continue;
+        if (pieces[i].x == x && pieces[i].y == y)
             return &pieces[i];
-        }
     }
     return NULL;
 }
+
+
+
+// Similar to GetPieceAtPosition, but for the "eaten" pieces only
+Piece* GetEatenPieceAtPosition(Piece* pieces, int x, int y) {
+    for (int i = 0; i < 40; ++i) {
+        if (!(pieces[i].isEaten)) continue;
+        if (pieces[i].x == x && pieces[i].y == y)
+            return &pieces[i];
+    }
+    return NULL;
+}
+
+
 
 
 // Gets the corresponding behavior for the type

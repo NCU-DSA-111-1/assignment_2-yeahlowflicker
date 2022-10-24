@@ -12,11 +12,22 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
     else
         printf("\n\x1b[31mPlayer %d\x1b[0m:\n", currentPlayer);
 
+	char command;
+	scanf("%c", &command);
+
+	if (command == 's' || command == 'S') {
+		WriteKifuToFile(kifuFileName, kifuStack);
+		RequestInput(pieces, pieceBehaviors, currentPlayer, kifuStack, kifuFileName);
+		return;
+	}
+
+
+
     //  Ask the current player which piece to select
     int oldX = -1;
     int oldY = -1;
-    printf("Select piece (x, y) >> ");
-    scanf("%d", &oldX);
+    printf("Select piece (x, y) >> ");    
+	scanf("%d", &oldX);
 
 	if (oldX == 0) {
 		//	Catch empty stack
@@ -35,10 +46,8 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 
 		//	Get the previous move by this player
 		//	The opponent's move has to be popped and pushed back
-		KifuRecord prev1 = *PopKifu(kifuStack, kifuFileName);
-		KifuRecord prev2 = *PopKifu(kifuStack, kifuFileName);
-
-		//PushKifu(kifuStack, tmp, kifuFileName);
+		KifuRecord prev1 = *PopKifu(kifuStack);
+		KifuRecord prev2 = *PopKifu(kifuStack);
 
 		MovePiece(GetPieceAtPosition(pieces, prev1.newX, prev1.newY), prev1.oldX, prev1.oldY);
 
@@ -92,9 +101,19 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
             return;
         }
         else {
-	    Piece* destinationPiece_ptr = GetPieceAtPosition(pieces, newX, newY);
-	    destinationPiece_ptr->y = (currentPlayer == 0) ? 10 : 0;
-	    destinationPiece_ptr->isEaten = TRUE;
+	    	Piece* destinationPiece_ptr = GetPieceAtPosition(pieces, newX, newY);
+		    destinationPiece_ptr->isEaten = TRUE;
+
+			//	Record the "eat" action
+			KifuRecord eatRecord;
+			eatRecord.type = destinationPiece_ptr->type;
+			eatRecord.oldX = destinationPiece_ptr->x;
+			eatRecord.oldY = destinationPiece_ptr->y;
+			eatRecord.newX = destinationPiece_ptr->x;
+			eatRecord.newY = destinationPiece_ptr->y;
+			eatRecord.isEaten = destinationPiece_ptr->isEaten;
+			eatRecord.player = destinationPiece_ptr->player;
+			PushKifu(kifuStack, eatRecord);
         }
     }
 
@@ -102,14 +121,17 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
     //  Move the piece to the intended location
     MovePiece(piece_ptr, newX, newY);
 
-	KifuRecord kifuRecord;
-	kifuRecord.type = piece_ptr->type;
-	kifuRecord.oldX = oldX;
-	kifuRecord.oldY = oldY;
-	kifuRecord.newX = newX;
-	kifuRecord.newY = newY;
-	kifuRecord.player = currentPlayer;
-	PushKifu(kifuStack, kifuRecord, kifuFileName);
+
+	//	Record the move
+	KifuRecord moveRecord;
+	moveRecord.type = piece_ptr->type;
+	moveRecord.oldX = oldX;
+	moveRecord.oldY = oldY;
+	moveRecord.newX = newX;
+	moveRecord.newY = newY;
+	moveRecord.isEaten = piece_ptr->isEaten;
+	moveRecord.player = currentPlayer;
+	PushKifu(kifuStack, moveRecord);
 
 
     //  Redraw the board without highlights
@@ -140,3 +162,7 @@ void ShogiGame(char* kifuFileName) {
         currentPlayer = currentPlayer == 0 ? 1 : 0;
     }
 }
+
+
+
+

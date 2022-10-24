@@ -7,4 +7,6 @@
 
 void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlayer);
 
-void ShogiGame(); 
+void ShogiGame(char* kifuFileName); 
+
+void ShogiReplay(char* kifuFileName);

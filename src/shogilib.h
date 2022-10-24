@@ -42,13 +42,15 @@ char* GetHans(PieceType type);
 
 void DrawBoard(Piece* const pieces, int highlightX, int highlightY);
 
-void AssignPiece(Piece* piece, int player, PieceType type, int x, int y);
+void AssignPiece(Piece* piece, int player, PieceType type, int x, int y, int isEaten);
 
 void InitializeBehaviors(PieceBehavior* pieceBehaviors);
 
 void InitializeBoard(Piece* const pieces);
 
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y);
+
+Piece* GetEatenPieceAtPosition(Piece* pieces, int x, int y);
 
 PieceBehavior* GetPieceBehavior(PieceBehavior* pieceBehaviors, PieceType type);
 
