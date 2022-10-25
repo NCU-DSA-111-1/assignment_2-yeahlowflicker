@@ -25,7 +25,7 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
     printf("———————————————————————————\n");
     for (int i = 0; i < 40; ++i) {
         if (pieces[i].isEaten && pieces[i].player == 0)
-            printf(" \x1b[32m%s\x1b[0m", GetHans(pieces[i].type));
+            printf(" \x1b[36m%s\x1b[0m", GetHans(pieces[i].type));
     }
     printf("\n———————————————————————————\n");
 
@@ -48,7 +48,7 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
                     if (pieces[i].x == highlightX && pieces[i].y == highlightY)
                         printf("|\x1b[33m%s\x1b[0m", GetHans(pieces[i].type));
                     else if (pieces[i].player == 0)
-                        printf("|\x1b[32m%s\x1b[0m", GetHans(pieces[i].type));
+                        printf("|\x1b[36m%s\x1b[0m", GetHans(pieces[i].type));
                     else
                         printf("|\x1b[31m%s\x1b[0m", GetHans(pieces[i].type));
                     isEmpty = FALSE;
@@ -72,6 +72,9 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
             printf(" \x1b[31m%s\x1b[0m", GetHans(pieces[i].type));
     }
     printf("\n———————————————————————————\n");
+
+	//for (int i = 0; i < 40; ++i)
+	//	printf("%s %d %d %d %d\n", GetHans(pieces[i].type), pieces[i].x, pieces[i].y, pieces[i].isEaten, pieces[i].player);
 }
 
 
@@ -238,7 +241,7 @@ void InitializeBoard(Piece* const pieces) {
 // Gets a pointer to a piece sitting at a specific location
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
     for (int i = 0; i < 40; ++i) {
-        if (pieces[i].isEaten) continue;
+//        if (pieces[i].isEaten) continue;
         if (pieces[i].x == x && pieces[i].y == y)
             return &pieces[i];
     }
@@ -248,9 +251,8 @@ Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
 
 
 // Similar to GetPieceAtPosition, but for the "eaten" pieces only
-Piece* GetEatenPieceAtPosition(Piece* pieces, int x, int y) {
+Piece* ForceGetPieceAtPosition(Piece* pieces, int x, int y) {
     for (int i = 0; i < 40; ++i) {
-        if (!(pieces[i].isEaten)) continue;
         if (pieces[i].x == x && pieces[i].y == y)
             return &pieces[i];
     }
@@ -263,8 +265,7 @@ Piece* GetEatenPieceAtPosition(Piece* pieces, int x, int y) {
 // Gets the corresponding behavior for the type
 PieceBehavior* GetPieceBehavior(PieceBehavior* pieceBehaviors, PieceType type) {
     for (int i = 0; i < PIECE_TYPE_COUNT; ++i) {
-        // printf("%s\n", GetHans(pieceBehaviors[i].type));
-        if (pieceBehaviors[i].type == type)
+		if (pieceBehaviors[i].type == type)
             return &pieceBehaviors[i];
     }
     return NULL;

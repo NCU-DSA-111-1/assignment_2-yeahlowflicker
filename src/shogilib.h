@@ -48,9 +48,9 @@ void InitializeBehaviors(PieceBehavior* pieceBehaviors);
 
 void InitializeBoard(Piece* const pieces);
 
-Piece* GetPieceAtPosition(Piece* pieces, int x, int y);
+Piece* ForceGetPieceAtPosition(Piece* pieces, int x, int y);
 
-Piece* GetEatenPieceAtPosition(Piece* pieces, int x, int y);
+Piece* GetPieceAtPosition(Piece* pieces, int x, int y);
 
 PieceBehavior* GetPieceBehavior(PieceBehavior* pieceBehaviors, PieceType type);
 

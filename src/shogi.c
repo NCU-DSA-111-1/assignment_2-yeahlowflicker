@@ -8,7 +8,7 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 
     // Print the current player's name
     if (currentPlayer == 0)
-        printf("\n\x1b[32mPlayer %d\x1b[0m:\n", currentPlayer);
+        printf("\n\x1b[36mPlayer %d\x1b[0m:\n", currentPlayer);
     else
         printf("\n\x1b[31mPlayer %d\x1b[0m:\n", currentPlayer);
 
@@ -21,6 +21,10 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 		return;
 	}
 
+
+	//	Variables for kifu writing
+	int flagEaten = FALSE;
+	KifuRecord moveRecord, eatRecord;
 
 
     //  Ask the current player which piece to select
@@ -105,15 +109,16 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 		    destinationPiece_ptr->isEaten = TRUE;
 
 			//	Record the "eat" action
-			KifuRecord eatRecord;
+			flagEaten = TRUE;
 			eatRecord.type = destinationPiece_ptr->type;
 			eatRecord.oldX = destinationPiece_ptr->x;
 			eatRecord.oldY = destinationPiece_ptr->y;
+
+			destinationPiece_ptr->y = 11 - currentPlayer;
 			eatRecord.newX = destinationPiece_ptr->x;
 			eatRecord.newY = destinationPiece_ptr->y;
 			eatRecord.isEaten = destinationPiece_ptr->isEaten;
 			eatRecord.player = destinationPiece_ptr->player;
-			PushKifu(kifuStack, eatRecord);
         }
     }
 
@@ -123,7 +128,6 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 
 
 	//	Record the move
-	KifuRecord moveRecord;
 	moveRecord.type = piece_ptr->type;
 	moveRecord.oldX = oldX;
 	moveRecord.oldY = oldY;
@@ -131,8 +135,10 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 	moveRecord.newY = newY;
 	moveRecord.isEaten = piece_ptr->isEaten;
 	moveRecord.player = currentPlayer;
+	
+	if (flagEaten)
+		PushKifu(kifuStack, eatRecord);
 	PushKifu(kifuStack, moveRecord);
-
 
     //  Redraw the board without highlights
     DrawBoard(pieces, -1, -1);
