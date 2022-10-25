@@ -7,6 +7,7 @@
 char* GetHans(PieceType type) {
     switch (type) {
         case King:     return "王"; break;
+		case King2:	   return "玉"; break;
         case Rook:     return "飛"; break;
         case Bishop:   return "角"; break;
         case Gold:     return "金"; break;
@@ -23,10 +24,9 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
 
     // Draw the pieces captured by Player 1
     printf("———————————————————————————\n");
-    for (int i = 0; i < 40; ++i) {
+    for (int i = 0; i < TOTAL_PIECE_COUNT; ++i)
         if (pieces[i].isEaten && pieces[i].player == 0)
             printf(" \x1b[36m%s\x1b[0m", GetHans(pieces[i].type));
-    }
     printf("\n———————————————————————————\n");
 
 
@@ -40,7 +40,7 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
 
             int isEmpty = TRUE;
 
-            for (int i = 0; i < 40; ++i) {
+            for (int i = 0; i < TOTAL_PIECE_COUNT; ++i) {
                 if (pieces[i].x == x && pieces[i].y == y) {
                     if (pieces[i].isEaten)
                         continue;
@@ -67,10 +67,9 @@ void DrawBoard(Piece* const pieces, int highlightX, int highlightY) {
 
     // Draw the pieces captured by Player 0
     printf("\n———————————————————————————\n");
-    for (int i = 0; i < 40; ++i) {
+    for (int i = 0; i < TOTAL_PIECE_COUNT; ++i)
         if (pieces[i].isEaten && pieces[i].player == 1)
             printf(" \x1b[31m%s\x1b[0m", GetHans(pieces[i].type));
-    }
     printf("\n———————————————————————————\n");
 
 	//for (int i = 0; i < 40; ++i)
@@ -95,6 +94,19 @@ void InitializeBehaviors(PieceBehavior* pieceBehaviors) {
         switch (pieceBehaviors[i].type) {
             case King:
                 pieceBehaviors[i].n = TRUE;
+                pieceBehaviors[i].ne = TRUE;
+                pieceBehaviors[i].e = TRUE;
+                pieceBehaviors[i].se = TRUE;
+                pieceBehaviors[i].s = TRUE;
+                pieceBehaviors[i].sw = TRUE;
+                pieceBehaviors[i].w = TRUE;
+                pieceBehaviors[i].nw = TRUE;
+                pieceBehaviors[i].allowMulti = FALSE;
+                pieceBehaviors[i].allowJump = FALSE;
+                break;
+
+			case King2:
+				pieceBehaviors[i].n = TRUE;
                 pieceBehaviors[i].ne = TRUE;
                 pieceBehaviors[i].e = TRUE;
                 pieceBehaviors[i].se = TRUE;
@@ -228,7 +240,7 @@ void InitializeBoard(Piece* const pieces) {
     AssignPiece(&pieces[32], 1, Knight, 8, 1, FALSE);
     AssignPiece(&pieces[33], 1, Silver, 7, 1, FALSE);
     AssignPiece(&pieces[34], 1, Gold, 6, 1, FALSE);
-    AssignPiece(&pieces[35], 1, King, 5, 1, FALSE);
+    AssignPiece(&pieces[35], 1, King2, 5, 1, FALSE);
     AssignPiece(&pieces[36], 1, Gold, 4, 1, FALSE);
     AssignPiece(&pieces[37], 1, Silver, 3, 1, FALSE);
     AssignPiece(&pieces[38], 1, Knight, 2, 1, FALSE);
@@ -240,25 +252,11 @@ void InitializeBoard(Piece* const pieces) {
 
 // Gets a pointer to a piece sitting at a specific location
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y) {
-    for (int i = 0; i < 40; ++i) {
-//        if (pieces[i].isEaten) continue;
+    for (int i = 0; i < TOTAL_PIECE_COUNT; ++i)
         if (pieces[i].x == x && pieces[i].y == y)
             return &pieces[i];
-    }
     return NULL;
 }
-
-
-
-// Similar to GetPieceAtPosition, but for the "eaten" pieces only
-Piece* ForceGetPieceAtPosition(Piece* pieces, int x, int y) {
-    for (int i = 0; i < 40; ++i) {
-        if (pieces[i].x == x && pieces[i].y == y)
-            return &pieces[i];
-    }
-    return NULL;
-}
-
 
 
 

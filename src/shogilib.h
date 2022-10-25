@@ -7,13 +7,14 @@
 #define FALSE 0
 #define TRUE 1
 
-#define PIECE_TYPE_COUNT 8
+#define PIECE_TYPE_COUNT 9
+#define TOTAL_PIECE_COUNT 40
 
 #define MIN(a, b) (a < b ? (a) : (b))
 #define MAX(a, b) (a > b ? (a) : (b))
 
 
-typedef enum { King, Rook, Bishop, Gold, Silver, Knight, Lance, Pawn } PieceType;
+typedef enum { King, King2, Rook, Bishop, Gold, Silver, Knight, Lance, Pawn } PieceType;
 
 typedef struct {
     PieceType type;
@@ -47,8 +48,6 @@ void AssignPiece(Piece* piece, int player, PieceType type, int x, int y, int isE
 void InitializeBehaviors(PieceBehavior* pieceBehaviors);
 
 void InitializeBoard(Piece* const pieces);
-
-Piece* ForceGetPieceAtPosition(Piece* pieces, int x, int y);
 
 Piece* GetPieceAtPosition(Piece* pieces, int x, int y);
 

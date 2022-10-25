@@ -151,7 +151,7 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 
 // Entry point to a single game
 void ShogiGame(char* kifuFileName) {
-    Piece pieces[40];
+    Piece pieces[TOTAL_PIECE_COUNT];
     PieceBehavior pieceBehaviors[PIECE_TYPE_COUNT];
     int currentPlayer = 0;
 
