@@ -62,8 +62,22 @@ void RequestInput(Piece* pieces, PieceBehavior* pieceBehaviors, int currentPlaye
 		KifuRecord prev1 = *PopKifu(kifuStack);
 		KifuRecord prev2 = *PopKifu(kifuStack);
 
-		MovePiece(GetPieceAtPosition(pieces, prev1.newX, prev1.newY), prev1.oldX, prev1.oldY);
-		MovePiece(GetPieceAtPosition(pieces, prev2.newX, prev2.newY), prev2.oldX, prev2.oldY);
+        Piece* piece1 = GetPieceAtPosition(pieces, prev1.newX, prev1.newY);
+        Piece* piece2 = GetPieceAtPosition(pieces, prev2.newX, prev2.newY);
+        piece1->isEaten = piece2->isEaten = FALSE;
+
+		MovePiece(piece1, prev1.oldX, prev1.oldY);
+		MovePiece(piece2, prev2.oldX, prev2.oldY);
+
+        if (kifuStack->stackTop > 2) {
+            KifuRecord prev3 = *PopKifu(kifuStack);
+            if (prev3.isEaten) {
+                Piece* piece3 = GetPieceAtPosition(pieces, prev3.newX, prev3.newY);
+                MovePiece(piece3, prev3.oldX, prev3.oldY);
+                piece3->isEaten = FALSE;
+            }
+            else PushKifu(kifuStack, prev3);
+        }
 
     	DrawBoard(pieces, oldX, oldY);
 		return;
